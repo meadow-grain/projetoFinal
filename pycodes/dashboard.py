@@ -6,7 +6,7 @@ import plotly.express as px
 from google import genai
 import datetime
 
-st_autorefresh(interval=5000, limit=None, key="atualizacao_leads")
+st_autorefresh(interval=30000, limit=None, key="atualizacao_leads")
 
 st.set_page_config(page_title="Dashboard - Leasing", page_icon="📊", layout="wide")
 
