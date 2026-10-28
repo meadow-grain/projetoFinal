@@ -14,8 +14,8 @@ client = genai.Client(api_key=st.secrets["GEMINI_API_KEY"])
 
 st.title("📊 Painel de Inteligência Comercial (Live)")
 
-STRING_CONEXAO = "mysql+pymysql://root:Marry79513.@localhost:3306/leasing_prospects"
-engine = create_engine(STRING_CONEXAO)
+STRING_CONEXAO = st.secrets["DB_URI"]
+engine = create_engine(STRING_CONEXAO, connect_args={"ssl": {"ssl_mode": "REQUIRED"}})
 
 try:
     with engine.connect() as conexao:
@@ -80,7 +80,6 @@ def reset_filtros():
     st.session_state.filtro_cdl = (0, max_cdl)
     st.session_state.filtro_qual = "Todos"
 
-# Inicializar no session_state para gerenciar atualizações
 if "filtro_estado" not in st.session_state:
     st.session_state.filtro_estado = sorted(estados_com_dados)
 if "filtro_regiao" not in st.session_state:
@@ -169,7 +168,6 @@ if not df_geral.empty:
     df_geral['criado_em'] = pd.to_datetime(df_geral['criado_em'])
     df_geral['data_criacao'] = df_geral['criado_em'].dt.date
     
-    # ATUALIZADO: Faixa Etária de CDL-A
     faixas_cdl = [-1, 5, 10, 15, 20, 25, 100]
     labels_cdl = ['0-5 anos', '6-10 anos', '11-15 anos', '16-20 anos', '21-25 anos', '26+ anos']
     df_geral['faixa_experiencia'] = pd.cut(df_geral['anos_cdl'], bins=faixas_cdl, labels=labels_cdl)
@@ -386,7 +384,6 @@ if not df_geral.empty:
             col_fin1, col_fin2 = st.columns(2)
             
             with col_fin1:
-                # ATUALIZADO: Grupos de Expectativa de Ganhos
                 faixas_exp = [0, 1000, 1500, 2000, 2500, 3000, 3500, 4000, 10000]
                 labels_exp = ['< $1000', '$1000-$1500', '$1500-$2000', '$2000-$2500', '$2500-$3000', '$3000-$3500', '$3500-$4000', '> $4000']
                 df_filtrado['grupo_expectativa'] = pd.cut(df_filtrado['expectativa_ganho'], bins=faixas_exp, labels=labels_exp)
