@@ -5,7 +5,7 @@ from sqlalchemy import create_engine
 from datetime import datetime, timedelta
 
 fake = Faker('en_US')
-STRING_CONEXAO = "mysql+pymysql://root:Marry79513.@localhost:3306/leasing_prospects"
+STRING_CONEXAO = "mysql+pymysql://root:SUA_SENHA.@localhost:3306/leasing_prospects"
 engine = create_engine(STRING_CONEXAO)
 
 ESTADOS_VALIDOS = [
