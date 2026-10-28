@@ -6,7 +6,7 @@ import plotly.express as px
 from google import genai
 import datetime
 
-st_autorefresh(interval=30000, limit=None, key="atualizacao_leads")
+st_autorefresh(interval=5000, limit=None, key="atualizacao_leads")
 
 st.set_page_config(page_title="Dashboard - Leasing", page_icon="📊", layout="wide")
 
@@ -168,6 +168,13 @@ if not df_geral.empty:
     df_geral['criado_em'] = pd.to_datetime(df_geral['criado_em'])
     df_geral['data_criacao'] = df_geral['criado_em'].dt.date
     
+    if 'previsao_ganho' not in df_geral.columns:
+        def calc_previsao(row):
+            mult_trailer = 0.83 if row['trailer'] == "Dry Van" else (1.30 if row['trailer'] == "Flatbed" else 1.10)
+            mult_rota = 1.20 if row['rota'] == 'OTR' else (0.90 if row['rota'] == 'Regional' else 0.65)
+            return (row['milhas'] * mult_trailer * mult_rota) * (1 - (row['folgas'] * 0.05))
+        df_geral['previsao_ganho'] = df_geral.apply(calc_previsao, axis=1)
+
     faixas_cdl = [-1, 5, 10, 15, 20, 25, 100]
     labels_cdl = ['0-5 anos', '6-10 anos', '11-15 anos', '16-20 anos', '21-25 anos', '26+ anos']
     df_geral['faixa_experiencia'] = pd.cut(df_geral['anos_cdl'], bins=faixas_cdl, labels=labels_cdl)
@@ -239,7 +246,7 @@ if not df_geral.empty:
             st.markdown("---")
             st.markdown("### Últimos Leads Captados")
             colunas_tabela = ['nome', 'regiao', 'estado', 'anos_cdl', 'trailer', 'rota', 'status_emprego', 'expectativa_ganho', 'previsao_ganho', 'qualificou']
-            df_tabela = df_filtrado.sort_values(by='id', ascending=False)[colunas_tabela].head(10).copy()
+            df_tabela = df_filtrado.sort_values(by='criado_em', ascending=False)[colunas_tabela].head(10).copy()
             df_tabela['qualificou'] = df_tabela['qualificou'].apply(lambda x: 'Sim' if x == 1 else 'Não')
             
             df_tabela = df_tabela.rename(columns={
@@ -255,7 +262,7 @@ if not df_geral.empty:
             
             with col_geo1:
                 df_mapa = df_filtrado.groupby('estado').agg(
-                    total=('id', 'count'),
+                    total=('nome', 'count'),
                     qualificados=('qualificou', 'sum')
                 ).reset_index()
                 df_mapa['taxa_qual'] = (df_mapa['qualificados'] / df_mapa['total']) * 100
